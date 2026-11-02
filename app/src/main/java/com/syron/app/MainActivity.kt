@@ -41,6 +41,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.hypot
+import kotlin.math.sin
 import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -59,15 +63,17 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-private fun norm(p: Offset, w: Int, h: Int): Offset =
-    Offset(
-        ((p.x / w) * 2f - 1f).coerceIn(-1f, 1f),
-        ((p.y / h) * 2f - 1f).coerceIn(-1f, 1f)
-    )
+// اتجاه النظر نسبة إلى مركز الدائرة، محصور داخل دائرة وحدة
+private fun gazeOf(p: Offset, w: Int, h: Int, reach: Float): Offset {
+    val vx = (p.x - w / 2f) / reach
+    val vy = (p.y - h / 2f) / reach
+    val len = hypot(vx, vy)
+    return if (len > 1f) Offset(vx / len, vy / len) else Offset(vx, vy)
+}
 
 @Composable
 fun SyronScreen() {
-    // اتجاه النظر من -1 إلى 1 في كل محور
+    // اتجاه النظر: x و y بين -1 و 1 داخل دائرة وحدة
     var gaze by remember { mutableStateOf(Offset.Zero) }
     var touching by remember { mutableStateOf(false) }
     val gx = remember { Animatable(0f) }
@@ -89,12 +95,14 @@ fun SyronScreen() {
         }
     }
 
-    // نظرات عشوائية بسيطة عند عدم اللمس
+    // نظرات عشوائية في كل الاتجاهات عند عدم اللمس
     LaunchedEffect(touching) {
         if (!touching) {
             while (true) {
                 delay(Random.nextLong(1800L, 4200L))
-                gaze = Offset(Random.nextFloat() * 2f - 1f, Random.nextFloat() * 2f - 1f) * 0.7f
+                val angle = Random.nextFloat() * 2f * PI.toFloat()
+                val mag = 0.5f + Random.nextFloat() * 0.5f
+                gaze = Offset(cos(angle) * mag, sin(angle) * mag)
             }
         }
     }
@@ -117,13 +125,14 @@ fun SyronScreen() {
             .background(Bg)
             .pointerInput(Unit) {
                 awaitEachGesture {
+                    val reach = 150.dp.toPx()
                     val down = awaitFirstDown()
                     touching = true
-                    gaze = norm(down.position, size.width, size.height)
+                    gaze = gazeOf(down.position, size.width, size.height, reach)
                     do {
                         val event = awaitPointerEvent()
                         val p = event.changes.firstOrNull() ?: break
-                        gaze = norm(p.position, size.width, size.height)
+                        gaze = gazeOf(p.position, size.width, size.height, reach)
                     } while (event.changes.any { it.pressed })
                     touching = false
                     gaze = Offset.Zero
@@ -182,8 +191,8 @@ fun SyronScreen() {
             val eyeW = r * 0.24f
             val eyeH = r * 0.62f * blink.value
             val gap = r * 0.30f
-            val ox = gx.value * r * 0.22f
-            val oy = gy.value * r * 0.16f
+            val ox = gx.value * r * 0.34f
+            val oy = gy.value * r * 0.44f
             for (side in listOf(-1f, 1f)) {
                 val cx = c.x + side * (gap / 2f + eyeW / 2f) + ox
                 val cy = c.y + oy
