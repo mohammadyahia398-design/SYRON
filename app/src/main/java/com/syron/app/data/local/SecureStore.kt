@@ -1,4 +1,4 @@
-package com.syron.app
+package com.syron.app.data.local
 
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
@@ -9,9 +9,10 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
+import com.syron.app.domain.repository.SettingsRepository
 
 /** يحفظ الأسرار (مثل مفتاح API) مشفّرة بمفتاح لا يغادر Android Keystore، والإعدادات العادية بجانبها. */
-class SecureStore(context: Context) {
+class SecureStore(context: Context) : SettingsRepository {
     private val prefs =
         context.applicationContext.getSharedPreferences("syron_store", Context.MODE_PRIVATE)
 
@@ -32,7 +33,7 @@ class SecureStore(context: Context) {
         return gen.generateKey()
     }
 
-    fun putSecret(name: String, value: String) {
+    override fun putSecret(name: String, value: String) {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, masterKey())
         val encrypted = cipher.doFinal(value.toByteArray(Charsets.UTF_8))
@@ -41,7 +42,7 @@ class SecureStore(context: Context) {
         prefs.edit().putString("secret_$name", packed).apply()
     }
 
-    fun getSecret(name: String): String? {
+    override fun getSecret(name: String): String? {
         val raw = prefs.getString("secret_$name", null) ?: return null
         return try {
             val (iv, data) = raw.split(":")
@@ -57,17 +58,17 @@ class SecureStore(context: Context) {
         }
     }
 
-    fun hasSecret(name: String): Boolean = getSecret(name) != null
+    override fun hasSecret(name: String): Boolean = getSecret(name) != null
 
-    fun deleteSecret(name: String) {
+    override fun deleteSecret(name: String) {
         prefs.edit().remove("secret_$name").apply()
     }
 
-    fun putPlain(name: String, value: String) {
+    override fun putPlain(name: String, value: String) {
         prefs.edit().putString("plain_$name", value).apply()
     }
 
-    fun getPlain(name: String, default: String): String =
+    override fun getPlain(name: String, default: String): String =
         prefs.getString("plain_$name", default) ?: default
 
     private companion object {

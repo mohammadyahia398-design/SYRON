@@ -1,4 +1,4 @@
-package com.syron.app
+package com.syron.app.domain.model
 
 data class Personality(
     val id: String,

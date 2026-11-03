@@ -1,4 +1,4 @@
-package com.syron.app
+package com.syron.app.data.remote
 
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
@@ -12,17 +12,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import com.syron.app.domain.model.ChatMsg
+import com.syron.app.domain.repository.ChatException
+import com.syron.app.domain.repository.ChatRepository
 
-data class ChatMsg(
-    val id: Long,
-    val fromUser: Boolean,
-    val text: String,
-    val isError: Boolean = false
-)
-
-class GeminiException(message: String) : Exception(message)
-
-class GeminiClient {
+class GeminiClient : ChatRepository {
     private val http = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(90, TimeUnit.SECONDS)
@@ -32,11 +26,11 @@ class GeminiClient {
     private var activeCall: Call? = null
 
     /** يقطع الاتصال الجاري فوراً (للإيقاف الفوري). */
-    fun cancel() {
+    override fun cancel() {
         activeCall?.cancel()
     }
 
-    fun stream(
+    override fun stream(
         apiKey: String,
         model: String,
         system: String,
@@ -71,9 +65,9 @@ class GeminiClient {
         try {
             call.execute().use { resp ->
                 if (!resp.isSuccessful) {
-                    throw GeminiException(explain(resp.code, resp.body?.string().orEmpty()))
+                    throw ChatException(explain(resp.code, resp.body?.string().orEmpty()))
                 }
-                val source = resp.body?.source() ?: throw GeminiException("وصل رد فارغ من الخادم")
+                val source = resp.body?.source() ?: throw ChatException("وصل رد فارغ من الخادم")
                 while (true) {
                     val line = source.readUtf8Line() ?: break
                     if (!line.startsWith("data:")) continue

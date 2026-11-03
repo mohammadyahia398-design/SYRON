@@ -1,20 +1,28 @@
-package com.syron.app
+package com.syron.app.presentation.chat
 
-import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import com.syron.app.di.AppContainer
+import com.syron.app.domain.model.ChatMsg
+import com.syron.app.domain.model.Personalities
+import com.syron.app.domain.model.Personality
+import com.syron.app.domain.repository.ChatException
+import com.syron.app.domain.repository.ChatRepository
+import com.syron.app.domain.repository.SettingsRepository
 
-class ChatViewModel(app: Application) : AndroidViewModel(app) {
-    private val store = SecureStore(app)
-    private val client = GeminiClient()
+class ChatViewModel(
+    private val store: SettingsRepository,
+    private val client: ChatRepository
+) : ViewModel() {
 
     val messages = mutableStateListOf<ChatMsg>()
 
@@ -132,7 +140,7 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun friendly(e: Exception): String = when (e) {
-        is GeminiException -> e.message ?: "خطأ من الخادم"
+        is ChatException -> e.message ?: "خطأ من الخادم"
         is IOException -> "تعذّر الاتصال بالخادم، تحقق من الإنترنت. (${e.message ?: ""})"
         else -> "خطأ غير متوقع: ${e.message}"
     }
@@ -141,4 +149,9 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
         const val DEFAULT_MODEL = "gemini-3.5-flash"
         private const val KEY_NAME = "gemini_key"
     }
+}
+class ChatViewModelFactory(private val container: AppContainer) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : ViewModel> create(modelClass: Class<T>): T =
+        ChatViewModel(container.settings, container.chat) as T
 }
