@@ -166,7 +166,7 @@ private fun TopBar(vm: ChatViewModel, onBack: () -> Unit, onSettings: () -> Unit
         Spacer(Modifier.width(8.dp))
         GlassIconButton(GlassIcon.Trash, "مسح المحادثة", { vm.clearChat() }, diameter = 44.dp)
         Spacer(Modifier.width(8.dp))
-        GlassIconButton(GlassIcon.Gear, "الإعدادات", onSettings, diameter = 44.dp)
+        GlassIconButton(GlassIcon.Sliders, "الإعدادات", onSettings, diameter = 44.dp)
     }
 }
 
@@ -197,9 +197,9 @@ private fun SendStop(generating: Boolean, canSend: Boolean, onSend: () -> Unit, 
 @Composable
 private fun Bubble(m: ChatMsg) {
     val tint = when {
-        m.isError -> SyronColors.Danger.copy(alpha = 0.14f)
-        m.fromUser -> SyronColors.Cyan.copy(alpha = 0.16f)
-        else -> Color.White.copy(alpha = 0.06f)
+        m.isError -> SyronColors.Danger.copy(alpha = 0.24f)
+        m.fromUser -> SyronColors.Cyan.copy(alpha = 0.34f)
+        else -> Color.White.copy(alpha = 0.13f)
     }
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -209,7 +209,7 @@ private fun Bubble(m: ChatMsg) {
             modifier = Modifier.widthIn(max = 320.dp),
             cornerRadius = 22.dp,
             tint = tint,
-            borderAlpha = if (m.fromUser) 0.4f else 0.28f
+            borderAlpha = if (m.fromUser) 0.6f else 0.42f
         ) {
             if (m.text.isEmpty()) {
                 TypingDots(Modifier.padding(horizontal = 18.dp, vertical = 16.dp))

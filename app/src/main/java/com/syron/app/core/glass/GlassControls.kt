@@ -52,7 +52,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
-enum class GlassIcon { Back, Send, Stop, Gear, Chat, Trash, Check }
+enum class GlassIcon { Back, Send, Stop, Sliders, Chat, Trash, Check }
 
 /** نقرة بلا موجة ضغط افتراضية (الضغط يُعبَّر عنه بنابض في الحجم). */
 fun Modifier.plainClick(onClick: () -> Unit): Modifier = composed {
@@ -80,7 +80,7 @@ fun GlassIconButton(
         if (env.reduceMotion) snap() else spring(dampingRatio = 0.45f, stiffness = 380f)
     val scale by animateFloatAsState(if (pressed) 0.86f else 1f, spec, label = "iconBtnScale")
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val iconColor = if (accent) SyronColors.Cyan else SyronColors.Text
+    val iconColor = SyronColors.Text
 
     GlassSurface(
         modifier = modifier
@@ -99,8 +99,8 @@ fun GlassIconButton(
                 onClick = onClick
             ),
         cornerRadius = diameter / 2,
-        tint = if (accent) SyronColors.Cyan.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f),
-        borderAlpha = if (accent) 0.6f else 0.45f
+        tint = if (accent) SyronColors.Cyan.copy(alpha = 0.34f) else Color.White.copy(alpha = 0.10f),
+        borderAlpha = if (accent) 0.8f else 0.6f
     ) {
         Canvas(
             Modifier
@@ -146,13 +146,13 @@ fun GlassButton(
             ),
         cornerRadius = 24.dp,
         refract = refract,
-        tint = if (accent) SyronColors.Cyan.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.06f),
-        borderAlpha = if (accent) 0.6f else 0.45f
+        tint = if (accent) SyronColors.Cyan.copy(alpha = 0.34f) else Color.White.copy(alpha = 0.10f),
+        borderAlpha = if (accent) 0.8f else 0.6f
     ) {
         Text(
             text = text,
-            color = if (accent) SyronColors.Cyan else SyronColors.Text,
-            fontSize = 15.sp,
+            color = SyronColors.Text,
+            fontSize = 16.sp,
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(PaddingValues(horizontal = 22.dp, vertical = 12.dp))
@@ -230,19 +230,12 @@ internal fun DrawScope.drawGlassIcon(icon: GlassIcon, color: Color, rtl: Boolean
                 cornerRadius = CornerRadius(w * 0.16f)
             )
         }
-        GlassIcon.Gear -> {
-            drawCircle(color, radius = w * 0.2f, center = center, style = stroke)
-            for (i in 0 until 8) {
-                val a = (i * 45f) * (PI.toFloat() / 180f)
-                val c = cos(a)
-                val s = sin(a)
-                drawLine(
-                    color,
-                    Offset(center.x + c * w * 0.34f, center.y + s * w * 0.34f),
-                    Offset(center.x + c * w * 0.47f, center.y + s * w * 0.47f),
-                    sw,
-                    StrokeCap.Round
-                )
+        GlassIcon.Sliders -> {
+            val ys = floatArrayOf(0.22f, 0.5f, 0.78f)
+            val xs = floatArrayOf(0.68f, 0.32f, 0.58f)
+            for (k in 0..2) {
+                drawLine(color, Offset(w * 0.06f, h * ys[k]), Offset(w * 0.94f, h * ys[k]), sw, StrokeCap.Round)
+                drawCircle(color, radius = w * 0.13f, center = Offset(w * xs[k], h * ys[k]))
             }
         }
         GlassIcon.Chat -> {

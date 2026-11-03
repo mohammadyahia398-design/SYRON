@@ -58,7 +58,7 @@ fun HomeScreen(vm: ChatViewModel, onChat: () -> Unit, onSettings: () -> Unit) {
                     )
                     Text(
                         text = status,
-                        color = if (vm.hasKey) SyronColors.TextDim else SyronColors.Cyan,
+                        color = if (vm.hasKey) SyronColors.TextDim else SyronColors.Amber,
                         fontSize = 12.sp
                     )
                 }
@@ -74,7 +74,7 @@ fun HomeScreen(vm: ChatViewModel, onChat: () -> Unit, onSettings: () -> Unit) {
         ) {
             Text(
                 text = "SYRON",
-                color = SyronColors.Cyan.copy(alpha = 0.7f),
+                color = SyronColors.Text,
                 fontSize = 13.sp,
                 letterSpacing = 6.sp
             )
@@ -82,7 +82,7 @@ fun HomeScreen(vm: ChatViewModel, onChat: () -> Unit, onSettings: () -> Unit) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 GlassButton(text = "ابدأ المحادثة", onClick = onChat, accent = true)
                 Spacer(Modifier.width(12.dp))
-                GlassIconButton(GlassIcon.Gear, "الإعدادات", onSettings)
+                GlassIconButton(GlassIcon.Sliders, "الإعدادات", onSettings)
             }
         }
     }

@@ -174,7 +174,7 @@ private fun SectionCard(title: String, content: @Composable ColumnScope.() -> Un
             modifier = Modifier.padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(text = title, color = SyronColors.Cyan, fontSize = 14.sp)
+            Text(text = title, color = SyronColors.Text, fontSize = 14.sp)
             content()
         }
     }
@@ -190,14 +190,14 @@ private fun FieldBox(content: @Composable () -> Unit) {
 @Composable
 private fun PersonalityRow(p: Personality, selected: Boolean, onClick: () -> Unit) {
     val tint by animateColorAsState(
-        targetValue = if (selected) SyronColors.Cyan.copy(alpha = 0.18f) else Color.White.copy(alpha = 0.05f),
+        targetValue = if (selected) SyronColors.Cyan.copy(alpha = 0.32f) else Color.White.copy(alpha = 0.09f),
         label = "personaTint"
     )
     GlassPanel(
         modifier = Modifier.fillMaxWidth().plainClick(onClick),
         cornerRadius = 18.dp,
         tint = tint,
-        borderAlpha = if (selected) 0.6f else 0.25f
+        borderAlpha = if (selected) 0.8f else 0.35f
     ) {
         Row(
             modifier = Modifier.padding(14.dp),

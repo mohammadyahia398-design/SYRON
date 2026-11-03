@@ -157,7 +157,7 @@ fun SyronOrb(
             // التوهج الخارجي
             drawCircle(
                 brush = Brush.radialGradient(
-                    listOf(Cyan.copy(alpha = 0.22f + 0.10f * breath), Color.Transparent),
+                    listOf(Cyan.copy(alpha = 0.40f + 0.14f * breath), Color.Transparent),
                     center = c,
                     radius = r * 1.25f
                 ),
@@ -167,7 +167,7 @@ fun SyronOrb(
             // جسم الدائرة الزجاجية الداكنة
             drawCircle(
                 brush = Brush.radialGradient(
-                    listOf(Color(0xFF16222E), Color(0xFF070B11)),
+                    listOf(Color(0xFF4A5CB0), Color(0xFF141B45)),
                     center = Offset(c.x - r * 0.3f, c.y - r * 0.35f),
                     radius = r * 1.3f
                 ),
@@ -176,7 +176,7 @@ fun SyronOrb(
             )
             // الحافة السماوية
             drawCircle(
-                color = Cyan.copy(alpha = 0.35f),
+                color = Color.White.copy(alpha = 0.55f),
                 radius = r * s,
                 center = c,
                 style = Stroke(width = 2.dp.toPx())
@@ -185,7 +185,7 @@ fun SyronOrb(
             val hl = Offset(c.x - r * 0.35f, c.y - r * 0.5f)
             drawCircle(
                 brush = Brush.radialGradient(
-                    listOf(Color.White.copy(alpha = 0.12f), Color.Transparent),
+                    listOf(Color.White.copy(alpha = 0.30f), Color.Transparent),
                     center = hl,
                     radius = r * 0.6f
                 ),

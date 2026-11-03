@@ -4,9 +4,10 @@ import androidx.compose.ui.graphics.Color
 
 object SyronColors {
     val Cyan = Color(0xFF4FD8FF)
-    val Bg = Color(0xFF05080D)
-    val Text = Color(0xEBFFFFFF)
-    val TextDim = Color(0x99FFFFFF)
-    val Danger = Color(0xFFFF6B7A)
-    val Good = Color(0xFF5CF2B0)
+    val Bg = Color(0xFF140F33)
+    val Text = Color(0xF2FFFFFF)
+    val TextDim = Color(0xBDFFFFFF)
+    val Danger = Color(0xFFFF7A88)
+    val Good = Color(0xFF6CF5B8)
+    val Amber = Color(0xFFFFD27A)
 }

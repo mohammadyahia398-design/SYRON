@@ -37,25 +37,47 @@ fun rememberReduceMotion(): Boolean {
     }
 }
 
-/** المشهد الخلفي: يُرسم مرة للشاشة كلها، ونسخة منه داخل كل سطح زجاجي ليُكسر عبره. */
+/**
+ * المشهد الخلفي: شفق ملوّن حيّ بدل الخلفية الداكنة.
+ * بقع كبيرة ناعمة للون العام، وكرات ضوء أحدّ حافة ليظهر الانكسار عبر الزجاج.
+ */
 fun DrawScope.drawScene(w: Float, h: Float) {
     drawRect(
         brush = Brush.verticalGradient(
-            colors = listOf(Color(0xFF070B14), Color(0xFF0A1220), Color(0xFF05080D)),
+            colors = listOf(Color(0xFF2A2073), Color(0xFF1B2A6B), Color(0xFF13164A)),
             startY = 0f,
             endY = h
         ),
         size = Size(w, h)
     )
-    blob(Color(0xFF4FD8FF), 0.34f, Offset(w * 0.15f, h * 0.18f), w * 0.62f)
-    blob(Color(0xFF7B5CFF), 0.28f, Offset(w * 0.92f, h * 0.46f), w * 0.66f)
-    blob(Color(0xFF1FD6B5), 0.22f, Offset(w * 0.28f, h * 0.9f), w * 0.62f)
+    blob(Color(0xFF3DD6FF), 0.60f, Offset(w * 0.10f, h * 0.12f), w * 0.80f)
+    blob(Color(0xFFFF5CA8), 0.50f, Offset(w * 0.98f, h * 0.30f), w * 0.75f)
+    blob(Color(0xFF8E6BFF), 0.55f, Offset(w * 0.50f, h * 0.55f), w * 0.85f)
+    blob(Color(0xFFFFB86B), 0.42f, Offset(w * 0.12f, h * 0.88f), w * 0.75f)
+    blob(Color(0xFF19E3C2), 0.38f, Offset(w * 0.98f, h * 0.96f), w * 0.65f)
+    lightOrb(Color(0xFFFFFFFF), 0.55f, Offset(w * 0.80f, h * 0.10f), w * 0.14f)
+    lightOrb(Color(0xFFFFA8D8), 0.60f, Offset(w * 0.16f, h * 0.60f), w * 0.12f)
+    lightOrb(Color(0xFF9FF0FF), 0.55f, Offset(w * 0.84f, h * 0.72f), w * 0.13f)
 }
 
 private fun DrawScope.blob(color: Color, alpha: Float, center: Offset, radius: Float) {
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(color.copy(alpha = alpha), Color.Transparent),
+            center = center,
+            radius = radius
+        ),
+        radius = radius,
+        center = center
+    )
+}
+
+private fun DrawScope.lightOrb(color: Color, alpha: Float, center: Offset, radius: Float) {
+    drawCircle(
+        brush = Brush.radialGradient(
+            0f to color.copy(alpha = alpha),
+            0.55f to color.copy(alpha = alpha * 0.55f),
+            1f to Color.Transparent,
             center = center,
             radius = radius
         ),
@@ -85,7 +107,7 @@ half4 main(float2 fc) {
     float r = min(radius, min(hs.x, hs.y));
     float2 p = fc - hs;
     float depth = -sdf(p, hs, r);
-    float zone = max(strength * 1.6, 1.0);
+    float zone = max(strength * 1.7, 1.0);
     float t = clamp(1.0 - depth / zone, 0.0, 1.0);
     t = t * t;
     float2 g = float2(
@@ -93,14 +115,19 @@ half4 main(float2 fc) {
         sdf(p + float2(0.0, 1.0), hs, r) - sdf(p - float2(0.0, 1.0), hs, r));
     float2 n = g / max(length(g), 0.0001);
     float disp = strength * t;
-    half4 c1 = content.eval(fc - n * disp * 0.9);
-    half4 c2 = content.eval(fc - n * disp * 1.0);
-    half4 c3 = content.eval(fc - n * disp * 1.1);
-    half4 col = half4(c1.r, c2.g, c3.b, 1.0);
-    float rim = pow(t, 1.5) * clamp(dot(n, normalize(float2(-0.6, -0.8))) * 0.5 + 0.5, 0.0, 1.0);
-    col.rgb += half3(rim * 0.2);
-    col.rgb *= half(1.0 + 0.08 * (1.0 - t));
-    return col;
+    float2 uv = p * 0.97 + hs;
+    half4 c1 = content.eval(uv - n * disp * 0.85);
+    half4 c2 = content.eval(uv - n * disp * 1.0);
+    half4 c3 = content.eval(uv - n * disp * 1.15);
+    half3 col = half3(c1.r, c2.g, c3.b);
+    half luma = dot(col, half3(0.299, 0.587, 0.114));
+    col = mix(half3(luma), col, half(1.3));
+    col = col * half(1.1) + half3(0.07);
+    float rim = pow(t, 1.4) * clamp(dot(n, normalize(float2(-0.6, -0.8))) * 0.5 + 0.5, 0.0, 1.0);
+    float rim2 = pow(t, 1.4) * clamp(dot(n, normalize(float2(0.6, 0.8))) * 0.5 + 0.5, 0.0, 1.0);
+    col += half3(rim * 0.30 + rim2 * 0.12);
+    col = clamp(col, half3(0.0), half3(1.0));
+    return half4(col, 1.0);
 }
 """
 
