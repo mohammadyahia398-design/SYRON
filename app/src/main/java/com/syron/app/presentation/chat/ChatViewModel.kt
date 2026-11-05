@@ -14,7 +14,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import com.syron.app.di.AppContainer
 import com.syron.app.domain.model.ChatMsg
-import com.syron.app.domain.model.Personalities
+import com.syron.app.domain.model.SystemPrompt
 import com.syron.app.domain.repository.ChatException
 import com.syron.app.domain.repository.ChatRepository
 import com.syron.app.domain.settings.SettingsCoordinator
@@ -88,7 +88,7 @@ class ChatViewModel(
                     .takeLast(20)
                     .dropWhile { !it.fromUser }
 
-                val system = Personalities.systemPrompt(cfg.personality)
+                val system = SystemPrompt.build(cfg.personality)
 
                 try {
                     ensureActive()
