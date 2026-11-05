@@ -28,11 +28,12 @@ import com.syron.app.presentation.chat.ChatScreen
 import com.syron.app.presentation.chat.ChatViewModel
 import com.syron.app.presentation.home.HomeScreen
 import com.syron.app.presentation.settings.SettingsScreen
+import com.syron.app.presentation.settings.SettingsViewModel
 
 enum class Screen { Home, Chat, Settings }
 
 @Composable
-fun SyronRoot(vm: ChatViewModel) {
+fun SyronRoot(vm: ChatViewModel, settings: SettingsViewModel) {
     val reduce = rememberReduceMotion()
     val env = remember(reduce) { GlassEnv(reduce) }
     val stack = remember { mutableStateListOf(Screen.Home) }
@@ -68,15 +69,17 @@ fun SyronRoot(vm: ChatViewModel) {
                 when (s) {
                     Screen.Home -> HomeScreen(
                         vm = vm,
+                        settings = settings,
                         onChat = { go(Screen.Chat) },
                         onSettings = { go(Screen.Settings) }
                     )
                     Screen.Chat -> ChatScreen(
                         vm = vm,
+                        settings = settings,
                         onBack = back,
                         onSettings = { go(Screen.Settings) }
                     )
-                    Screen.Settings -> SettingsScreen(vm = vm, onBack = back)
+                    Screen.Settings -> SettingsScreen(vm = settings, onBack = back)
                 }
             }
         }

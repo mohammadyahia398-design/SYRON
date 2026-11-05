@@ -61,11 +61,17 @@ import com.syron.app.core.glass.LocalGlassEnv
 import com.syron.app.core.theme.SyronColors
 import com.syron.app.domain.model.ChatMsg
 import com.syron.app.presentation.orb.SyronOrb
+import com.syron.app.presentation.settings.SettingsViewModel
 import kotlin.math.abs
 import kotlin.math.min
 
 @Composable
-fun ChatScreen(vm: ChatViewModel, onBack: () -> Unit, onSettings: () -> Unit) {
+fun ChatScreen(
+    vm: ChatViewModel,
+    settings: SettingsViewModel,
+    onBack: () -> Unit,
+    onSettings: () -> Unit
+) {
     var input by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
@@ -81,11 +87,11 @@ fun ChatScreen(vm: ChatViewModel, onBack: () -> Unit, onSettings: () -> Unit) {
             .navigationBarsPadding()
             .imePadding()
     ) {
-        TopBar(vm, onBack, onSettings)
+        TopBar(vm, settings, onBack, onSettings)
 
         Box(Modifier.weight(1f).fillMaxWidth()) {
             if (vm.messages.isEmpty()) {
-                EmptyState(vm, onSettings)
+                EmptyState(settings, onSettings)
             } else {
                 // اتجاه ثابت LTR: المستخدم يمين دائماً والمساعد يسار، مهما كانت لغة النظام
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
@@ -136,7 +142,12 @@ fun ChatScreen(vm: ChatViewModel, onBack: () -> Unit, onSettings: () -> Unit) {
 }
 
 @Composable
-private fun TopBar(vm: ChatViewModel, onBack: () -> Unit, onSettings: () -> Unit) {
+private fun TopBar(
+    vm: ChatViewModel,
+    settings: SettingsViewModel,
+    onBack: () -> Unit,
+    onSettings: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -156,7 +167,7 @@ private fun TopBar(vm: ChatViewModel, onBack: () -> Unit, onSettings: () -> Unit
                 SyronOrb(Modifier.size(34.dp), 34.dp, false, vm.generating)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "SYRON · ${vm.personality.name}",
+                    text = "SYRON · ${settings.personality.name}",
                     color = SyronColors.Text,
                     fontSize = 14.sp,
                     maxLines = 1
@@ -253,7 +264,7 @@ private fun TypingDots(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun EmptyState(vm: ChatViewModel, onSettings: () -> Unit) {
+private fun EmptyState(settings: SettingsViewModel, onSettings: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         verticalArrangement = Arrangement.Center,
@@ -262,12 +273,12 @@ private fun EmptyState(vm: ChatViewModel, onSettings: () -> Unit) {
         Text(text = "اسأل SYRON أي شيء", color = SyronColors.Text, fontSize = 20.sp)
         Spacer(Modifier.height(8.dp))
         Text(
-            text = vm.personality.summary,
+            text = settings.personality.summary,
             color = SyronColors.TextDim,
             fontSize = 14.sp,
             textAlign = TextAlign.Center
         )
-        if (!vm.hasKey) {
+        if (settings.loaded && !settings.hasKey && !settings.readFailed) {
             Spacer(Modifier.height(20.dp))
             GlassPanel(cornerRadius = 22.dp, tint = SyronColors.Cyan.copy(alpha = 0.1f)) {
                 Column(

@@ -25,10 +25,22 @@ import com.syron.app.core.glass.plainClick
 import com.syron.app.core.theme.SyronColors
 import com.syron.app.presentation.chat.ChatViewModel
 import com.syron.app.presentation.orb.SyronOrb
+import com.syron.app.presentation.settings.SettingsViewModel
 
 @Composable
-fun HomeScreen(vm: ChatViewModel, onChat: () -> Unit, onSettings: () -> Unit) {
-    val status = if (vm.hasKey) "جاهز · ${vm.model}" else "أضف مفتاح Gemini من الإعدادات"
+fun HomeScreen(
+    vm: ChatViewModel,
+    settings: SettingsViewModel,
+    onChat: () -> Unit,
+    onSettings: () -> Unit
+) {
+    val status = when {
+        !settings.loaded -> "…"
+        settings.readFailed -> "تعذّرت قراءة الإعدادات"
+        settings.hasKey -> "جاهز · ${settings.model}"
+        else -> "أضف مفتاح Gemini من الإعدادات"
+    }
+    val statusWarn = settings.loaded && (settings.readFailed || !settings.hasKey)
 
     Box(Modifier.fillMaxSize()) {
         SyronOrb(
@@ -52,13 +64,13 @@ fun HomeScreen(vm: ChatViewModel, onChat: () -> Unit, onSettings: () -> Unit) {
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     Text(
-                        text = "الشخصية: ${vm.personality.name}",
+                        text = "الشخصية: ${settings.personality.name}",
                         color = SyronColors.Text,
                         fontSize = 13.sp
                     )
                     Text(
                         text = status,
-                        color = if (vm.hasKey) SyronColors.TextDim else SyronColors.Amber,
+                        color = if (statusWarn) SyronColors.Amber else SyronColors.TextDim,
                         fontSize = 12.sp
                     )
                 }

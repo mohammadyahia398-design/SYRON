@@ -1,6 +1,5 @@
 package com.syron.app.presentation.settings
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -23,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.syron.app.core.glass.GlassButton
@@ -43,21 +44,24 @@ import com.syron.app.core.glass.plainClick
 import com.syron.app.core.theme.SyronColors
 import com.syron.app.domain.model.Personalities
 import com.syron.app.domain.model.Personality
-import com.syron.app.presentation.chat.ChatViewModel
+import com.syron.app.domain.model.SettingsKeys
 import kotlinx.coroutines.delay
 
 @Composable
-fun SettingsScreen(vm: ChatViewModel, onBack: () -> Unit) {
+fun SettingsScreen(vm: SettingsViewModel, onBack: () -> Unit) {
     var keyInput by remember { mutableStateOf("") }
-    var modelInput by remember { mutableStateOf(vm.model) }
-    var saved by remember { mutableStateOf(false) }
+    // يُعاد ضبط حقل النموذج مرة واحدة عند اكتمال التحميل من التخزين
+    var modelInput by remember(vm.loaded) { mutableStateOf(vm.model) }
 
-    LaunchedEffect(saved) {
-        if (saved) {
-            delay(1800L)
-            saved = false
+    // رسائل النجاح والمعلومات تختفي تلقائياً، والأخطاء تبقى حتى العملية التالية
+    LaunchedEffect(vm.notice) {
+        val n = vm.notice
+        if (n != null && n.kind != NoticeKind.Error) {
+            delay(2500L)
+            vm.dismissNotice()
         }
     }
+    DisposableEffect(Unit) { onDispose { vm.dismissNotice() } }
 
     Column(
         modifier = Modifier
@@ -93,7 +97,12 @@ fun SettingsScreen(vm: ChatViewModel, onBack: () -> Unit) {
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = if (vm.hasKey) "محفوظ ومشفّر على الجهاز" else "لم يُضف بعد",
+                        text = when {
+                            !vm.loaded -> "…"
+                            vm.readFailed -> "تعذّرت قراءة الحالة"
+                            vm.hasKey -> "مفتاح مضاف ومشفّر"
+                            else -> "لم يُضف بعد"
+                        },
                         color = SyronColors.TextDim,
                         fontSize = 13.sp
                     )
@@ -110,7 +119,12 @@ fun SettingsScreen(vm: ChatViewModel, onBack: () -> Unit) {
                     )
                 }
                 if (vm.hasKey) {
-                    GlassButton(text = "حذف المفتاح", onClick = { vm.removeKey() }, refract = false)
+                    GlassButton(
+                        text = "حذف المفتاح",
+                        onClick = { vm.removeKey() },
+                        enabled = !vm.saving,
+                        refract = false
+                    )
                 }
             }
 
@@ -119,14 +133,14 @@ fun SettingsScreen(vm: ChatViewModel, onBack: () -> Unit) {
                     GlassField(
                         value = modelInput,
                         onValueChange = { modelInput = it },
-                        placeholder = ChatViewModel.DEFAULT_MODEL,
+                        placeholder = SettingsKeys.DEFAULT_MODEL,
                         modifier = Modifier.fillMaxWidth().padding(14.dp),
                         singleLine = true,
                         ltr = true
                     )
                 }
                 Text(
-                    text = "إن ظهرت رسالة «النموذج غير موجود» فغيّر الاسم هنا. الافتراضي: ${ChatViewModel.DEFAULT_MODEL}",
+                    text = "إن ظهرت رسالة «النموذج غير موجود» فغيّر الاسم هنا. الافتراضي: ${SettingsKeys.DEFAULT_MODEL}",
                     color = SyronColors.TextDim,
                     fontSize = 12.sp
                 )
@@ -139,13 +153,17 @@ fun SettingsScreen(vm: ChatViewModel, onBack: () -> Unit) {
             }
         }
 
-        AnimatedVisibility(visible = saved) {
+        vm.notice?.let { n ->
             Text(
-                text = "تم الحفظ ✓",
-                color = SyronColors.Good,
+                text = n.text,
+                color = when (n.kind) {
+                    NoticeKind.Success -> SyronColors.Good
+                    NoticeKind.Info -> SyronColors.TextDim
+                    NoticeKind.Error -> SyronColors.Danger
+                },
                 fontSize = 14.sp,
-                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 6.dp),
+                textAlign = TextAlign.Center
             )
         }
         Row(
@@ -156,12 +174,12 @@ fun SettingsScreen(vm: ChatViewModel, onBack: () -> Unit) {
             GlassButton(
                 text = "حفظ",
                 onClick = {
-                    vm.saveSettings(keyInput, modelInput)
-                    keyInput = ""
-                    saved = true
+                    // يُفرَّغ حقل المفتاح فقط بعد التحقق من قراءة المفتاح فعلاً
+                    vm.save(keyInput, modelInput, onKeySaved = { keyInput = "" })
                 },
                 modifier = Modifier.weight(1f),
-                accent = true
+                accent = true,
+                enabled = vm.loaded && !vm.saving
             )
         }
     }
